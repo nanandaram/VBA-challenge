@@ -1,0 +1,118 @@
+Sub stckValueChange()
+' Create a variable to hold the StarCounter. We will repeatedly use this.
+  Dim StarCounter As Integer
+  Dim substring As String
+  Dim ticker As String
+  Dim openValue As Double
+  Dim closeValue As Double
+  Dim currentstring As String
+  Dim lpear As String
+  Dim objDate2 As Date
+  Dim objDate As Date
+  Dim l As Long
+Dim s As String
+Dim d As Date
+Dim bVal As String
+Dim intYear As Integer
+Dim intMonth As Integer
+Dim intDay As Integer
+Dim nextyr As Integer
+Dim j As Integer
+Dim ValueChange As Double
+Dim prcntChange As Double
+Dim volume As Double
+Dim WS_Count As Integer
+Dim I As Long
+Dim lastrow, lastrow1, vol As Long
+Dim arr(10000)  As Double
+Dim found As Boolean
+
+
+WS_Count = ActiveWorkbook.Worksheets.Count
+For Each ws In ActiveWorkbook.Worksheets
+    
+    MsgBox ("worksheet=" + ws.Name)
+    lastrow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+    'convert number to date for column B
+    ws.Cells(1, 12).Value = "Ticker"
+    ws.Cells(1, 13).Value = "Yearly Change"
+    ws.Cells(1, 14).Value = "Percentage change"
+    ws.Cells(1, 15).Value = "Volume"
+    ws.Cells(2, 17).Value = "Greatest % inc"
+    ws.Cells(3, 17).Value = "Greatest % dec"
+    ws.Cells(4, 17).Value = "Greatest Vol"
+    ws.Cells(1, 18).Value = "Ticker"
+    ws.Cells(1, 19).Value = "Value"
+    openValue = ws.Cells(2, 3).Value
+    ticker = ws.Cells(2, 1).Value
+    closeValue = ws.Cells(2, 6).Value
+    j = 2
+    volume = 0
+    
+    For I = 3 To lastrow
+        If ticker <> ws.Cells(I, 1).Value Then
+            closeVlaue = ws.Cells(I - 1, 6).Value
+            ValueChange = closeVlaue - openValue
+            If openValue <> 0 Then
+                If ValueChange <> 0 Then
+                    prcntChange = (closeVlaue - openValue) / openValue * 100
+                Else
+                    prcntChange = 0
+                End If
+            Else
+                prcntChange = 0
+            End If
+            ws.Cells(j, 12).Value = ticker
+            ws.Cells(j, 13).Value = ValueChange
+            If ValueChange < 0 Then
+                ws.Cells(j, 13).Interior.ColorIndex = 3
+            ElseIf ValueChange > 0 Then
+                ws.Cells(j, 13).Interior.ColorIndex = 4
+            ElseIf ValueChange = 0 Then
+                ws.Cells(j, 13).Interior.ColorIndex = 5
+            End If
+            ws.Cells(j, 14).Value = Str(Round(prcntChange, 2)) + "%"
+            ws.Cells(j, 15).Value = volume
+            ticker = ws.Cells(I, 1).Value
+            'MsgBox ("Ticker = " + ticker)
+            openValue = ws.Cells(I, 3).Value
+           ' MsgBox ("openValue = " + Str(openValue))
+            closeVlaue = ws.Cells(I, 6).Value
+            'MsgBox ("closeVlaue = " + Str(closeVlaue))
+            arr(j) = prcntChange
+            j = j + 1
+            volume = 0
+            
+        End If
+        volume = volume + ws.Cells(I, 7).Value
+    Next I
+    found = False
+   lastrow1 = ws.Range("N" & ws.Rows.Count).End(xlUp).Row
+   MsgBox ("Last row =" + Str(lastrow1))
+   ws.Cells(2, 19).Value = Str(Round(WorksheetFunction.Max(arr), 2)) + "%"
+   ws.Cells(3, 19).Value = Str(Round(WorksheetFunction.Min(arr), 2)) + "%"
+   For I = 2 To lastrow1
+        If ws.Cells(I, 14).Value = ws.Cells(2, 19).Value Then
+            ws.Cells(2, 18).Value = ws.Cells(I, 12).Value
+            Exit For
+        End If
+   Next I
+   For I = 2 To lastrow1
+        If ws.Cells(I, 14).Value = ws.Cells(3, 19).Value Then
+            ws.Cells(3, 18).Value = ws.Cells(I, 12).Value
+            Exit For
+        End If
+   Next I
+   ws.Cells(4, 19).Value = WorksheetFunction.Max(ws.Range("O1" + ":" + "O" + Trim(Str(lastrow1))))
+   For I = 2 To lastrow1
+        If ws.Cells(I, 15).Value = ws.Cells(4, 19).Value Then
+            ws.Cells(4, 18).Value = ws.Cells(I, 12).Value
+            Exit For
+        End If
+   Next I
+    
+   Erase arr
+    
+Next
+
+End Sub
